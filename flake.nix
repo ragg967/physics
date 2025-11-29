@@ -1,40 +1,27 @@
 {
-  description = "Raylib development environment";
+  description = "Project development environment/Project name";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "nixpkgs/nixos-25.05";
   };
 
-  outputs = {
-    self,
-    nixpkgs,
-    ...
-  }: let
-    system = "x86_64-linux";
-  in {
-    devShells."${system}".default = let
-      pkgs = import nixpkgs {
-        inherit system;
-      };
+  outputs = { self, nixpkgs }:
+    let
+      system = "x86_64-linux";
+      pkgs = nixpkgs.legacyPackages.${system};
     in
-      pkgs.mkShell {
-        packages = [
-          pkgs.libGL
-
-          # X11 dependencies
-          pkgs.xorg.libX11
-          pkgs.xorg.libX11.dev
-          pkgs.xorg.libXcursor
-          pkgs.xorg.libXi
-          pkgs.xorg.libXinerama
-          pkgs.xorg.libXrandr
-
-          # Uncomment the line below if you want to build Raylib with web support
-          # pkgs.emscripten
+    {
+      devShells.${system}.default = pkgs.mkShell {
+        packages = with pkgs; [
+          # packages here remember to run 'direnv allow' to make it work
+          raylib
+          clang-tools
         ];
 
-        # Audio dependencies
-        LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath [pkgs.alsa-lib];
+        shellHook = ''
+          export PROJECT_ROOT=$(pwd)
+          echo "Development environment loaded!"
+        '';
       };
-  };
+    };
 }
