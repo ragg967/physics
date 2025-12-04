@@ -1,6 +1,7 @@
 #include "raylib.h"
 #define CIRCLES_IMPLEMENTATION
 #include "../includes/circles.h"
+#include "../includes/utilities.h"
 
 #include <stdlib.h>
 
@@ -12,7 +13,6 @@ st_Window window = {
     .height = 450,
     .width = 800,
 };
-
 
 typedef struct {
   float x, y, height, width;
@@ -36,6 +36,8 @@ static st_Rectangle *initRectangle(float x, float y, float height, float width,
   return newRectangle;
 }
 
+static void UpdateRectangle(st_Rectangle *rectangle);
+static void RectangleWallCollision(st_Rectangle *rectangle);
 
 int main(void) {
   SetConfigFlags(FLAG_MSAA_4X_HINT);
@@ -47,12 +49,22 @@ int main(void) {
   st_Circle *circle2 =
       initCircle(600.0f, 100.0f, 50.0f, BLUE, (Vector2){5.0f, 4.0f});
 
+  st_Rectangle *rectangle1 =
+      initRectangle(100.0F, 200.0F, 50.0F, 50.0F, RED, (Vector2){7.0F, 14.0F});
+  st_Rectangle *rectangle2 =
+      initRectangle(500.0F, 300.0F, 50.0F, 50.0F, WHITE, (Vector2){1.0F, 2.0F});
+
   while (!WindowShouldClose()) {
     // Update
+
+    // circles
     UpdateCircle(circle1);
     UpdateCircle(circle2);
-
     CircleCircleCollision(circle1, circle2);
+
+    // rectangles
+    UpdateRectangle(rectangle1);
+    UpdateRectangle(rectangle2);
 
     // Draw
     BeginDrawing();
@@ -65,8 +77,17 @@ int main(void) {
     DrawCircle(circle2->x, circle2->y, circle2->radius, circle2->color);
     DrawCircleDebug(circle2);
 
-    DrawDebugText(0.0f, circle1);
-    DrawDebugText(14.0f, circle2);
+    // rectangle1's body, center, and velocity dir
+    DrawRectangle(rectangle1->x, rectangle1->y, rectangle1->width,
+                  rectangle1->height, rectangle1->color);
+
+    // rectangle2's body, center, and velocity dir
+    DrawRectangle(rectangle2->x, rectangle2->y, rectangle2->width,
+                  rectangle2->height, rectangle2->color);
+
+    // debug text
+    DrawCircleDebugText(0.0f, circle1);
+    DrawCircleDebugText(14.0f, circle2);
     EndDrawing();
   }
   free(circle1);
@@ -74,3 +95,50 @@ int main(void) {
   CloseWindow();
 }
 
+static void UpdateRectangle(st_Rectangle *rectangle) {
+  rectangle->x += rectangle->speed.x;
+  rectangle->y += rectangle->speed.y;
+
+  rectangle->speed.y += GRAVITY * GetFrameTime();
+  rectangle->speed.y -= AIR_RESISTANCE * GetFrameTime();
+  rectangle->speed.x -= AIR_RESISTANCE * GetFrameTime();
+
+  RectangleWallCollision(rectangle);
+
+  if (fabsf(rectangle->speed.y) < 0.15f &&
+      rectangle->y >= GetScreenHeight() - rectangle->height - 1.0f) {
+    rectangle->speed.y = 0.0f; // Stop vertical movement when nearly at rest
+  }
+  if (fabsf(rectangle->speed.x) < 0.15f) {
+    rectangle->speed.x = 0.0f; // Stop horizontal movement when nearly at rest
+  }
+}
+
+static void RectangleWallCollision(st_Rectangle *rectangle) {
+  // Right wall
+  if (rectangle->x >= (GetScreenWidth() - rectangle->width)) {
+    rectangle->x = GetScreenWidth() - rectangle->width; // Clamp position
+    if (rectangle->speed.x > 0) // Only reverse if moving into wall
+      rectangle->speed.x *= -1.0f * RESTITUTION;
+  }
+  // Left wall
+  if (rectangle->x <= 0) {
+    rectangle->x = 0; // Clamp position
+    if (rectangle->speed.x < 0)    // Only reverse if moving into wall
+      rectangle->speed.x *= -1.0f * RESTITUTION;
+  }
+  // Bottom wall
+  if (rectangle->y >= (GetScreenHeight() - rectangle->height)) {
+    rectangle->y = GetScreenHeight() - rectangle->height; // Clamp position
+    if (rectangle->speed.y > 0) // Only reverse if moving into wall
+      rectangle->speed.y *= -1.0f * RESTITUTION;
+  }
+  // Top wall
+  if (rectangle->y <= 0) {
+    rectangle->y = 0; // Clamp position
+    if (rectangle->speed.y < 0)    // Only reverse if moving into wall
+      rectangle->speed.y *= -1.0f * RESTITUTION;
+  }
+}
+
+static void RectangleRectangleCollision(st_Rectangle *r1, st_Rectangle *r2) {}

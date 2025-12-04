@@ -13,14 +13,13 @@ typedef struct {
 } st_Circle;
 
 static void DrawCircleDebug(st_Circle *circle);
-static void DrawDebugText(float offset, st_Circle *circle);
+static void DrawCircleDebugText(float offset, st_Circle *circle);
 static void UpdateCircle(st_Circle *circle);
-static void WallCollision(st_Circle *circle);
+static void CrclesWallCollision(st_Circle *circle);
 static void CircleCircleCollision(st_Circle *c1, st_Circle *c2);
 
 #endif // CIRCLES_H
 
-#define CIRCLES_IMPLEMENTATION
 #if defined(CIRCLES_IMPLEMENTATION)
 
 #if defined(__cplusplus)
@@ -36,7 +35,7 @@ static void UpdateCircle(st_Circle *circle) {
   circle->speed.y -= AIR_RESISTANCE * GetFrameTime();
   circle->speed.x -= AIR_RESISTANCE * GetFrameTime();
 
-  WallCollision(circle);
+  CrclesWallCollision(circle);
 
   if (fabsf(circle->speed.y) < 0.15f &&
       circle->y >= GetScreenHeight() - circle->radius - 1.0f) {
@@ -69,15 +68,15 @@ static void DrawCircleDebug(st_Circle *circle) {
            circle->y + circle->speed.y * 10.0f, WHITE);
 }
 
-static void DrawDebugText(float offset, st_Circle *circle) {
+static void DrawCircleDebugText(float offset, st_Circle *circle) {
   int fontSize = 14;
   int padding = 5;
 
-  DrawText(TextFormat("Position: x=%.1f y=%.1f", circle->x, circle->y),
+  DrawText(TextFormat("Circle position: x=%.1f y=%.1f", circle->x, circle->y),
            0 + padding, 0 + padding + offset, fontSize, GREEN);
 }
 
-static void WallCollision(st_Circle *circle) {
+static void CrclesWallCollision(st_Circle *circle) {
   // Right wall
   if (circle->x >= (GetScreenWidth() - circle->radius)) {
     circle->x = GetScreenWidth() - circle->radius; // Clamp position
