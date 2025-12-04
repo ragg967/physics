@@ -3,5 +3,6 @@
 
 #define GRAVITY 9.81
 #define RESTITUTION 0.95
+#define AIR_RESISTANCE 0.7
 
 #endif // UTILITIES_H

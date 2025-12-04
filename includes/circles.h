@@ -33,8 +33,18 @@ static void UpdateCircle(st_Circle *circle) {
   circle->y += circle->speed.y;
 
   circle->speed.y += GRAVITY * GetFrameTime();
+  circle->speed.y -= AIR_RESISTANCE * GetFrameTime();
+  circle->speed.x -= AIR_RESISTANCE * GetFrameTime();
 
   WallCollision(circle);
+
+  if (fabsf(circle->speed.y) < 0.15f &&
+      circle->y >= GetScreenHeight() - circle->radius - 1.0f) {
+    circle->speed.y = 0.0f; // Stop vertical movement when nearly at rest
+  }
+  if (fabsf(circle->speed.x) < 0.15f) {
+    circle->speed.x = 0.0f; // Stop horizontal movement when nearly at rest
+  }
 }
 
 static st_Circle *initCircle(float x, float y, float radius, Color color,
@@ -68,12 +78,30 @@ static void DrawDebugText(float offset, st_Circle *circle) {
 }
 
 static void WallCollision(st_Circle *circle) {
-  if ((circle->x >= (GetScreenWidth() - circle->radius)) ||
-      (circle->x <= circle->radius))
-    circle->speed.x *= -1.0f * RESTITUTION;
-  if ((circle->y >= (GetScreenHeight() - circle->radius)) ||
-      (circle->y <= circle->radius))
-    circle->speed.y *= -1.0f * RESTITUTION;
+  // Right wall
+  if (circle->x >= (GetScreenWidth() - circle->radius)) {
+    circle->x = GetScreenWidth() - circle->radius; // Clamp position
+    if (circle->speed.x > 0) // Only reverse if moving into wall
+      circle->speed.x *= -1.0f * RESTITUTION;
+  }
+  // Left wall
+  if (circle->x <= circle->radius) {
+    circle->x = circle->radius; // Clamp position
+    if (circle->speed.x < 0)    // Only reverse if moving into wall
+      circle->speed.x *= -1.0f * RESTITUTION;
+  }
+  // Bottom wall
+  if (circle->y >= (GetScreenHeight() - circle->radius)) {
+    circle->y = GetScreenHeight() - circle->radius; // Clamp position
+    if (circle->speed.y > 0) // Only reverse if moving into wall
+      circle->speed.y *= -1.0f * RESTITUTION;
+  }
+  // Top wall
+  if (circle->y <= circle->radius) {
+    circle->y = circle->radius; // Clamp position
+    if (circle->speed.y < 0)    // Only reverse if moving into wall
+      circle->speed.y *= -1.0f * RESTITUTION;
+  }
 }
 
 static void CircleCircleCollision(st_Circle *c1, st_Circle *c2) {
