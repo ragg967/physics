@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include <stdio.h>
 #define CIRCLES_IMPLEMENTATION
 #include "../includes/circles.h"
 #include "../includes/utilities.h"
@@ -38,6 +39,7 @@ static st_Rectangle *initRectangle(float x, float y, float height, float width,
 
 static void UpdateRectangle(st_Rectangle *rectangle);
 static void RectangleWallCollision(st_Rectangle *rectangle);
+static void RectangleRectangleCollision(st_Rectangle *r1, st_Rectangle *r2);
 
 int main(void) {
   SetConfigFlags(FLAG_MSAA_4X_HINT);
@@ -50,9 +52,9 @@ int main(void) {
       initCircle(600.0f, 100.0f, 50.0f, BLUE, (Vector2){5.0f, 4.0f});
 
   st_Rectangle *rectangle1 =
-      initRectangle(100.0F, 200.0F, 50.0F, 50.0F, RED, (Vector2){7.0F, 14.0F});
+      initRectangle(102.0F, 100.0F, 50.0F, 50.0F, RED, (Vector2){5.0F, 4.0F});
   st_Rectangle *rectangle2 =
-      initRectangle(500.0F, 300.0F, 50.0F, 50.0F, WHITE, (Vector2){1.0F, 2.0F});
+      initRectangle(100.0F, 300.0F, 50.0F, 50.0F, WHITE, (Vector2){5.0F, 4.0F});
 
   while (!WindowShouldClose()) {
     // Update
@@ -65,6 +67,7 @@ int main(void) {
     // rectangles
     UpdateRectangle(rectangle1);
     UpdateRectangle(rectangle2);
+    RectangleRectangleCollision(rectangle1, rectangle2);
 
     // Draw
     BeginDrawing();
@@ -92,6 +95,8 @@ int main(void) {
   }
   free(circle1);
   free(circle2);
+  free(rectangle1);
+  free(rectangle2);
   CloseWindow();
 }
 
@@ -105,7 +110,7 @@ static void UpdateRectangle(st_Rectangle *rectangle) {
 
   RectangleWallCollision(rectangle);
 
-  if (fabsf(rectangle->speed.y) < 0.15f &&
+  if (fabsf(rectangle->speed.y) < 0.5f &&
       rectangle->y >= GetScreenHeight() - rectangle->height - 1.0f) {
     rectangle->speed.y = 0.0f; // Stop vertical movement when nearly at rest
   }
@@ -123,8 +128,8 @@ static void RectangleWallCollision(st_Rectangle *rectangle) {
   }
   // Left wall
   if (rectangle->x <= 0) {
-    rectangle->x = 0; // Clamp position
-    if (rectangle->speed.x < 0)    // Only reverse if moving into wall
+    rectangle->x = 0;           // Clamp position
+    if (rectangle->speed.x < 0) // Only reverse if moving into wall
       rectangle->speed.x *= -1.0f * RESTITUTION;
   }
   // Bottom wall
@@ -135,10 +140,14 @@ static void RectangleWallCollision(st_Rectangle *rectangle) {
   }
   // Top wall
   if (rectangle->y <= 0) {
-    rectangle->y = 0; // Clamp position
-    if (rectangle->speed.y < 0)    // Only reverse if moving into wall
+    rectangle->y = 0;           // Clamp position
+    if (rectangle->speed.y < 0) // Only reverse if moving into wall
       rectangle->speed.y *= -1.0f * RESTITUTION;
   }
 }
 
-static void RectangleRectangleCollision(st_Rectangle *r1, st_Rectangle *r2) {}
+static void RectangleRectangleCollision(st_Rectangle *r1, st_Rectangle *r2) {
+  bool r1AboveR2 = r1->y + r1->height > r2->y;
+  bool r1BelowR2 = r1->y < r2->y + r2->height;
+  bool r1RightR2 = r1->x
+}

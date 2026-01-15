@@ -37,7 +37,7 @@ static void UpdateCircle(st_Circle *circle) {
 
   CrclesWallCollision(circle);
 
-  if (fabsf(circle->speed.y) < 0.15f &&
+  if (fabsf(circle->speed.y) < 0.5f &&
       circle->y >= GetScreenHeight() - circle->radius - 1.0f) {
     circle->speed.y = 0.0f; // Stop vertical movement when nearly at rest
   }
@@ -133,11 +133,8 @@ static void CircleCircleCollision(st_Circle *c1, st_Circle *c2) {
     if (velAlongNormal > 0)
       return;
 
-    // Assume equal masses - just reflect velocities along normal
-    float restitution = 1.0f; // 1.0 = perfectly elastic, 0.8 = some energy loss
-
     // Calculate impulse
-    float impulse = -(1.0f + restitution) * velAlongNormal / 2.0f;
+    float impulse = -(1.0f + RESTITUTION) * velAlongNormal / 2.0f;
 
     // Apply impulse along the normal
     float impulseX = impulse * normalX;
